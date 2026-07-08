@@ -1,0 +1,6 @@
+node_modules/
+.env
+movies_downloads/
+subtitles/
+*.sql
+*.md

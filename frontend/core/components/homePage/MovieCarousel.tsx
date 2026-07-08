@@ -1,0 +1,192 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Bookmark, ChevronLeft, ChevronRight } from "lucide-react";
+import { Movie, MovieCarouselProps } from "@/core/types/movie";
+import { useAuth } from "@/core/contexts/AuthContext";
+
+const formatDuration = (duration: string) => {
+    return duration
+        .replace(/hours?/gi, "h")
+        .replace(/minutes?\.?/gi, "min")
+        .trim();
+};
+
+export default function MovieCarousel({
+    title,
+    moviesList,
+    itemsPerPage,
+    onMovieClick,
+    watchlist,
+    onToggleWatchlist,
+    viewAllHref,
+}: MovieCarouselProps) {
+    const { watchedMovieIds } = useAuth();
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        const maxIndex = moviesList.length - itemsPerPage;
+        if (currentIndex > maxIndex) {
+            setCurrentIndex(Math.max(0, maxIndex));
+        }
+    }, [itemsPerPage, moviesList.length, currentIndex]);
+
+    const handleNext = () => {
+        setCurrentIndex((prev) => {
+            const maxIndex = moviesList.length - itemsPerPage;
+            if (maxIndex <= 0) return 0;
+            return (prev + 1) % (maxIndex + 1);
+        });
+    };
+
+    const handlePrev = () => {
+        setCurrentIndex((prev) => {
+            const maxIndex = moviesList.length - itemsPerPage;
+            if (maxIndex <= 0) return 0;
+            return (prev - 1 + (maxIndex + 1)) % (maxIndex + 1);
+        });
+    };
+
+    return (
+        <section className="flex flex-col gap-4">
+            <style>{`
+                .movie-carousel-container {
+                    --items-per-page: 2;
+                }
+                @media (min-width: 768px) {
+                    .movie-carousel-container {
+                        --items-per-page: 4;
+                    }
+                }
+                @media (min-width: 1024px) {
+                    .movie-carousel-container {
+                        --items-per-page: 5;
+                    }
+                }
+                @media (min-width: 1280px) {
+                    .movie-carousel-container {
+                        --items-per-page: 5;
+                    }
+                }
+                .movie-carousel-item {
+                    flex: 0 0 calc((100% - (var(--items-per-page) - 1) * 16px) / var(--items-per-page));
+                    width: calc((100% - (var(--items-per-page) - 1) * 16px) / var(--items-per-page));
+                }
+            `}</style>
+            <div className="flex justify-between items-center gap-2">
+                <h3 className="text-xl font-medium text-white">{title}</h3>
+                <div className="flex items-center gap-4">
+                    {viewAllHref && (
+                        <Link
+                            href={viewAllHref}
+                            className="text-sm underline text-[#F8E9A1] underline-offset-2 hover:text-[#EC4949] transition-colors"
+                        >
+                            View all
+                        </Link>
+                    )}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handlePrev}
+                            className="p-1.5 rounded-full bg-white/10 backdrop-blur-xs w-8 h-8 flex justify-center items-center cursor-pointer hover:bg-white/20 active:scale-95 transition-all focus:outline-none border border-white/5"
+                        >
+                            <ChevronLeft size={24} />
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            className="p-1.5 rounded-full bg-white/10 backdrop-blur-xs w-8 h-8 flex justify-center items-center cursor-pointer hover:bg-white/20 active:scale-95 transition-all focus:outline-none border border-white/5"
+                        >
+                            <ChevronRight size={24} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div className="w-full overflow-hidden">
+                <div
+                    className="flex transition-transform duration-500 ease-in-out gap-4 movie-carousel-container"
+                    style={
+                        {
+                            transform: `translateX(calc(-${currentIndex} * (100% + 16px) / var(--items-per-page)))`,
+                        } as any
+                    }
+                >
+                    {moviesList.map((movie) => (
+                        <div
+                            key={movie.id}
+                            onClick={() => {
+                                onMovieClick(movie);
+                            }}
+                            className="movie-carousel-item group flex flex-col gap-2 rounded-xl cursor-pointer transition-all duration-300"
+                        >
+                            {/* Movie Poster */}
+                            <div className="relative aspect-4/5 w-full rounded-lg overflow-hidden shadow-md">
+                                <Image
+                                    src={movie.bgUrl}
+                                    alt={movie.title}
+                                    fill
+                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                    unoptimized
+                                />
+                                {watchedMovieIds?.has(movie.id) && (
+                                    <div className="absolute top-2 left-2 flex gap-1.5 items-center bg-black/60 backdrop-blur-xs text-[10px] text-white font-medium px-2.5 py-0.5 rounded-full border border-white/5 shadow-md z-20">
+                                        <div className="w-1.5 h-1.5 bg-[#4ADE80] rounded-full animate-pulse" />
+                                        <span>Watched</span>
+                                    </div>
+                                )}
+                                {/* Wishlist Toggle Button */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        onToggleWatchlist(movie);
+                                    }}
+                                    className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-[#EC4949] text-white rounded-full transition-colors z-20 backdrop-blur-xs opacity-0 group-hover:opacity-100 duration-200 shadow-md border border-white/5 cursor-pointer"
+                                    title={
+                                        watchlist.some((w) => w.id === movie.id)
+                                            ? "Remove from Watchlist"
+                                            : "Add to Watchlist"
+                                    }
+                                >
+                                    <Bookmark
+                                        size={14}
+                                        fill={
+                                            watchlist.some(
+                                                (w) => w.id === movie.id,
+                                            )
+                                                ? "white"
+                                                : "none"
+                                        }
+                                        className="text-white"
+                                    />
+                                </button>
+                                {/* Description Overlay on Hover */}
+                                <div className="absolute inset-0 bg-black/60 flex items-end justify-start p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 select-none">
+                                    <p className="text-xs text-gray-200 line-clamp-4 text-start leading-relaxed font-light">
+                                        {movie.description}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-1 px-1">
+                                <h4 className="font-semibold text-sm truncate text-white group-hover:text-[#EC4949] transition-colors duration-300">
+                                    {movie.title}
+                                </h4>
+                                <div className="flex items-center justify-between gap-1.5 text-xs text-gray-400">
+                                    <div className="flex items-center gap-1">
+                                        <span>{movie.year}</span>
+                                        <span>—</span>
+                                        <span className="truncate">
+                                            {formatDuration(movie.duration)}
+                                        </span>
+                                    </div>
+                                    <span>⭐ {movie.rating} / 10</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}

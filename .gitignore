@@ -1,0 +1,36 @@
+# frontend
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.env*.local
+frontend/.env
+frontend/.vercel
+
+# backend
+backend/node_modules/
+backend/movies_downloads/
+backend/subtitles/
+backend/.env
+backend/client_secret_*.json
+backend/*.json
+
+# IDEs, Editors and OS files
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+tsconfig.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
