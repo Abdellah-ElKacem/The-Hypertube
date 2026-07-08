@@ -7,7 +7,7 @@ const addComment = async (req, res) => {
         const movieId = req.body.movieId;
         let  content = req.body.content;
         const userId = req.user.id;
-        const allowedCharactersRegex = /^[a-zA-Z0-9\s.,!?''"\-_@]+$/;
+        const allowedCharactersRegex = /^[a-zA-Z0-9\s.,!?''"\-_+@]+$/;
         const parentId = req.body.parentId || null;
         content = req.body.content?.trim().slice(0, 500);
         if (!allowedCharactersRegex.test(content)) {
