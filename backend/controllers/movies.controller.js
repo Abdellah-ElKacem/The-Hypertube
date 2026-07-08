@@ -16,7 +16,7 @@ const getOrCreateMovieByImdbId = async (imdb_code) => {
 		const findResponse = await axios.get(
 			`${TMDB_BASE_URL}/find/${imdb_code}?api_key=${TMDB_API_KEY}&external_source=imdb_id`
 		);
-		if(!findResponse.data || !findResponse.data.movie_results || findResponse.data.movie_results.length === 0) {
+		if (!findResponse.data || !findResponse.data.movie_results || findResponse.data.movie_results.length === 0) {
 			return null; // Movie not found on TMDb
 		}
 		const tmdbMovie = findResponse.data.movie_results[0];
@@ -29,8 +29,8 @@ const getOrCreateMovieByImdbId = async (imdb_code) => {
 				getMovieDetails(tmdb_Id),
 				getMovieCredits(tmdb_Id)
 			]);
-			const movieMagnetLinks = await buildMagnetLink(imdb_code);
-			if(!movieMagnetLinks)
+			let movieMagnetLinks = await buildMagnetLink(imdb_code);
+			if (!movieMagnetLinks)
 				movieMagnetLinks = [];
 			newMovieData = {
 				tmdbId: details.id,
@@ -54,7 +54,7 @@ const getOrCreateMovieByImdbId = async (imdb_code) => {
 				cast: credits.cast,
 				magnetLinks: movieMagnetLinks
 			};
-		
+
 		} else {
 			// --- CASE B: Fallback to OMDb (IMDb data source) ---
 			const omdbResponse = await axios.get(`http://www.omdbapi.com/?i=${imdb_code}&apikey=${OMDB_API_KEY}`);
@@ -68,8 +68,8 @@ const getOrCreateMovieByImdbId = async (imdb_code) => {
 			const parsedPopularity = omdbData.imdbVotes && omdbData.imdbVotes !== "N/A"
 				? parseInt(omdbData.imdbVotes.replace(/,/g, ''), 10)
 				: 0;
-			const movieMagnetLinks = await buildMagnetLink(imdb_code);
-			if(!movieMagnetLinks)
+			let movieMagnetLinks = await buildMagnetLink(imdb_code);
+			if (!movieMagnetLinks)
 				movieMagnetLinks = [];
 			newMovieData = {
 				tmdbId: 0,
@@ -80,7 +80,7 @@ const getOrCreateMovieByImdbId = async (imdb_code) => {
 				backdropPath: null,
 				overview: omdbData.Plot,
 				duration: parsedDuration,
-				voteAverage: omdbData.imdbRating ,
+				voteAverage: omdbData.imdbRating,
 				language: omdbData.Language,
 				popularity: parsedPopularity,
 				genres: omdbData.Genre,
@@ -180,7 +180,7 @@ const removeFromWishlist = async (req, res) => {
 const getWishlist = async (req, res) => {
 	try {
 		// const user = await User.findById(req.user.id).populate('wishlist');
-		const {userId} = req.params;
+		const { userId } = req.params;
 		const user = await User.findById(userId).populate({
 			path: 'wishlist',
 			select: 'movieName imdbId releaseDate voteAverage posterPath genres overview duration'
