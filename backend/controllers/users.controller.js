@@ -349,7 +349,6 @@ exports.updateVideoStreaming = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    console.log("Current user preferences:", req.body);
 
     const { quality, subtitle } = req.body;
 

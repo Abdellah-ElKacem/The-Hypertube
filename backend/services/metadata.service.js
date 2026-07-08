@@ -20,7 +20,6 @@ const getMovieCredits = async (tmdbId) => {
 		const director = response.data.crew.find(person => person.job === 'Director');
 		const producer = response.data.crew.find(person => person.job === 'Producer');
 		const cast = response.data.cast.slice(0, 10);
-		// console.log(`director: ${director} and producer: ${producer}`);
 		return {
 			director: director ? { name: director.name, picture: director.profile_path } : null,
 			producer: producer ? { name: producer.name, picture: producer.profile_path } : null,
@@ -42,10 +41,8 @@ const getTrailerVideo = async (imdbId) => {
             `${TMDB_BASE_URL}/find/${imdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id`
         );
         const movieResults = findResponse.data.movie_results[0];
-        if (!movieResults || movieResults.length === 0) {
-            console.log(`No movie found on TMDB for IMDb ID: ${imdbId}`);
+        if (!movieResults || movieResults.length === 0)
             return null;
-        }
         const tmdbId = movieResults.id;
         const videoResponse = await axios.get(
             `${TMDB_BASE_URL}/movie/${tmdbId}/videos?api_key=${TMDB_API_KEY}`
@@ -53,12 +50,9 @@ const getTrailerVideo = async (imdbId) => {
         const trailer = videoResponse.data.results.find(
             video => video.type === 'Trailer' && video.site === 'YouTube'
         );
-        if (!trailer) {
-            console.log(`No trailer code found for IMDb ID: ${imdbId}`);
+        if (!trailer)
             return null;
-        }
         const watchUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
-        console.log(watchUrl);
         return watchUrl;
 
     } catch (error) {

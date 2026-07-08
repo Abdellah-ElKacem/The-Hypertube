@@ -24,7 +24,6 @@ const getOrCreateMovieByImdbId = async (imdb_code) => {
 		if (tmdbMovie) {
 			// --- CASE A: Found on TMDb ---
 			const tmdb_Id = tmdbMovie.id;
-			console.log(`Movie found on TMDb with ID ----------------->: ${tmdb_Id}`);
 			const [details, credits] = await Promise.all([
 				getMovieDetails(tmdb_Id),
 				getMovieCredits(tmdb_Id)
@@ -101,7 +100,6 @@ const getOrCreateMovieByImdbId = async (imdb_code) => {
 const getMovieById = async (req, res) => {
 	try {
 		const imdb_code = req.params.id;
-		console.log(`Fetching movie details for IMDb ID: ${imdb_code}`);
 		const movie = await getOrCreateMovieByImdbId(imdb_code);
 
 		if (!movie) {
@@ -138,7 +136,6 @@ const getMovieTrailer = async (req, res) => {
 		}
 		res.status(200).json({ success: true, data: trailer })
 	} catch (error) {
-		console.log(error.message)
 		res.status(500).json({ success: false, message: "Something went wrong." });
 	}
 }

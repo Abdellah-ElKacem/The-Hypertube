@@ -31,10 +31,8 @@ const getSimilarMovies = async (imdbId, limit = 10) => {
     try {
         const findResponse = await axios.get(`${TMDB_BASE_URL}/find/${imdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id`);
         const tmdbMovie = findResponse.data?.movie_results?.[0];
-        if (!tmdbMovie) {
-            console.log(`Movie not found on TMDB for IMDb ID: ${imdbId}`);
+        if (!tmdbMovie)
             return [];
-        }
         const tmdbId = tmdbMovie.id
         const recommendationsResponse = await axios.get(`${TMDB_BASE_URL}/movie/${tmdbId}/recommendations?api_key=${TMDB_API_KEY}`);
         const suggestedMovies = recommendationsResponse.data?.results || [];
@@ -70,8 +68,9 @@ const getSimilarMovies = async (imdbId, limit = 10) => {
         }));
 
     } catch (error) {
-        console.error("TMDB Recommendations Fetch Error:", error);
-        throw new Error(`Failed to retrieve similar movies from TMDB: ${error.message}`);
+        const customError = new Error(error.response?.data?.status_message || error.message);
+        customError.status = error.response?.status || 500;
+        throw customError;
     }
 };
 
@@ -123,14 +122,15 @@ const getTopByGenre = async (genre, limit = 10) => {
         return detailedMovies.filter(movie => movie !== null);
 
     } catch (error) {
-        throw new Error(`TMDb API discover error: ${error.message}`);
+        const customError = new Error(error.response?.data?.status_message || error.message);
+        customError.status = error.response?.status || 500;
+        throw customError;
     }
 }
 
 
 const getTopMoviesThisWeek = async () => {
     try {
-        console.log("Fetching top movies this week from TMDb...");
         const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
         params: {
             api_key: TMDB_API_KEY,
@@ -138,7 +138,6 @@ const getTopMoviesThisWeek = async () => {
          }
     });
     const movies = response.data?.results || [];
-    console.log("Movies This Week:", movies.map(m => m.title));
     if (movies.length === 0) return [];
      const detailedMovies = await Promise.all(
             movies.map(async (movie) => {
@@ -161,7 +160,6 @@ const getTopMoviesThisWeek = async () => {
                         runtime:   details.runtime || 0,
                         popularity: details.popularity || 0
                     };
-                    console.log("Detailed Movies This Week:", details.title);
                 } catch (error) {
                     console.error(`Failed to fetch details for TMDB ID ${movie.id}:`, error.message);
                     return null;
@@ -170,51 +168,66 @@ const getTopMoviesThisWeek = async () => {
         );
         return detailedMovies.filter(movie => movie !== null);
     } catch (error) {
-        throw new Error(`TMDb API error: ${error.message}`);
+        const customError = new Error(error.response?.data?.status_message || error.message);
+        customError.status = error.response?.status || 500;
+        throw customError;
     }
 }
 
 const getLandingMoviesService = async () => {
-    const response = await axios.get(`${TMDB_BASE_URL}/movie/now_playing`, {
-        params: { api_key: TMDB_API_KEY }
-    });
-    const movies = response.data?.results || [];
-    if (movies.length === 0) return [];
-    const featuredMovies = movies.slice(0, 10);
-    const listMovies = await Promise.all(
-        featuredMovies.map(async (movie) => {
-            try {
-                const detailRes = await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}`, {
-                    params: {
-                        api_key: TMDB_API_KEY,
-                        append_to_response: 'credits'
-                    }
-                });
-                const castArray = detailRes.data?.credits?.cast || [];
-                return {
-                    title:      movie.title,
-                    imdb_code:  detailRes.data?.imdb_id || null,
-                    tmdb_id:    movie.id,
-                    year:       movie.release_date,
-                    rating:     movie.vote_average,
-                    popularity: movie.popularity,
-                    poster:     movie.poster_path,
-                    backdrop:   movie.backdrop_path,
-                    summary:    movie.overview,
-                    runtime:    detailRes.data?.runtime || null,
-                    genres:     (movie.genre_ids || []).map(id => TMDB_GENRE_MAP[id]).filter(Boolean),
-                    cast:       castArray.slice(0, 10).map(actor => ({
-                        name:      actor.name,
-                        character: actor.character,
-                        picture:   actor.profile_path
-                    }))
-                };
-            } catch (err) {
-                 throw new Error(`YTS API error: ${error.message}`);
-            }
-        })
-    );
-    return listMovies;
-}
+    try {
+        const response = await axios.get(`${TMDB_BASE_URL}/movie/now_playing`, {
+            params: { api_key: TMDB_API_KEY }
+        });
+        
+        const movies = response.data?.results || [];
+        if (movies.length === 0) return [];
+        
+        const featuredMovies = movies.slice(0, 10);
+        
+        const listMovies = await Promise.all(
+            featuredMovies.map(async (movie) => {
+                try {
+                    const detailRes = await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}`, {
+                        params: {
+                            api_key: TMDB_API_KEY,
+                            append_to_response: 'credits'
+                        }
+                    });
+                    
+                    const detailData = detailRes.data;
+                    const castArray = detailData?.credits?.cast || [];
+                    
+                    return {
+                        title:      movie.title,
+                        imdb_code:  detailData?.imdb_id || null,
+                        tmdb_id:    movie.id,
+                        year:       movie.release_date,
+                        rating:     movie.vote_average,
+                        popularity: movie.popularity,
+                        poster:     movie.poster_path,
+                        backdrop:   movie.backdrop_path,
+                        summary:    movie.overview,
+                        runtime:    detailData?.runtime || null,
+                        genres:     (movie.genre_ids || []).map(id => TMDB_GENRE_MAP[id]).filter(Boolean),
+                        cast:       castArray.slice(0, 10).map(actor => ({
+                            name:      actor.name,
+                            character: actor.character,
+                            picture:   actor.profile_path
+                        }))
+                    };
+                } catch (err) {
+                    console.error(`Failed to fetch details for landing movie TMDB ID ${movie.id}:`, err.message);
+                    return null;
+                }
+            })
+        );        
+        return listMovies.filter(movie => movie !== null);
 
+    } catch (error) {
+        const customError = new Error(error.response?.data?.status_message || error.message);
+        customError.status = error.response?.status || 500;
+        throw customError;
+    }
+}
 module.exports = { getSimilarMovies, getTopByGenre, getLandingMoviesService, getTopMoviesThisWeek };

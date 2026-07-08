@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Movie = require('../models/movie');
 
-const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+const ONE_MONTH_MS = 1 * 60 * 60 * 1000;
 const DOWNLOAD_DIR = path.join(__dirname, '../movies_downloads');
 
 const deleteDownloadFolder = (filePath) => {
@@ -22,11 +22,11 @@ const cleanupUnwatchedMovies = async () => {
     const lastActivity = movie.lastWatchedAt || movie.updatedAt || movie.createdAt;
     if (now - new Date(lastActivity).getTime() < ONE_MONTH_MS) continue;
 
-    console.log(`🗑️ Removing unwatched download: ${movie.movieName} (last activity: ${lastActivity})`);
+    console.log(`Removing unwatched download: ${movie.movieName} (last activity: ${lastActivity})`);
     try {
       deleteDownloadFolder(movie.filePath);
     } catch (err) {
-      console.log(`⚠️ Failed to delete files for ${movie.movieName}:`, err.message);
+      console.log(`Failed to delete files for ${movie.movieName}:`, err.message);
     }
 
     movie.isDownloaded = false;

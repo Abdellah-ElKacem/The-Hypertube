@@ -29,17 +29,38 @@ const streamMovie = async (req, res) => {
     const user = await User.findById(req.user.id);
     const quality = user ? user.qualityPreference : null;
 
+    const selectableLinks = movie.magnetLinks.filter(
+      m => m.quality && m.quality.toUpperCase() !== '3D'
+    );
+
     let magnetobj;
     if (quality) {
-      magnetobj = movie.magnetLinks.find(m => m.quality === quality);
+      magnetobj = selectableLinks.find(m => m.quality === quality);
     }
 
     if (!magnetobj) {
-      magnetobj = movie.magnetLinks.find(m => m.quality === '720p');
+      const qualityValue = (q) => parseInt(q, 10);
+      const preferredValue = quality ? qualityValue(quality) : NaN;
+
+      const ranked = selectableLinks
+        .filter(m => !Number.isNaN(qualityValue(m.quality)))
+        .sort((a, b) => qualityValue(a.quality) - qualityValue(b.quality));
+
+      const lowerOptions = Number.isNaN(preferredValue)
+        ? ranked
+        : ranked.filter(m => qualityValue(m.quality) < preferredValue);
+
+      if (lowerOptions.length) {
+        // Closest quality below the preferred one.
+        magnetobj = lowerOptions[lowerOptions.length - 1];
+      } else if (ranked.length) {
+        // Nothing lower is available, fall back to the closest quality above.
+        magnetobj = ranked[0];
+      }
     }
 
     if (!magnetobj) {
-      magnetobj = movie.magnetLinks[0];
+      magnetobj = selectableLinks[0];
     }
 
     if (!magnetobj) {

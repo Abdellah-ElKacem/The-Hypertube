@@ -9,10 +9,8 @@ const RateMovie = async (req, res) => {
 	try {
 		const { movieId, ratingValue } = req.body;
 		const userId = req.user.id;
-		console.log(movieId, ratingValue);
 	if (ratingValue < 0 || ratingValue > 10)
       return res.status(400).json({ success: false, message: "Rating must be between 0 and 10." });
-	console.log("hello")
 	await Rating.findOneAndUpdate(
 		{ userId, movieId },
 		{ rating: ratingValue },
@@ -96,7 +94,6 @@ const getPopularMovies = async (req, res) => {
 const Top3RatedMovies = async (req, res) => {
 	try{
 		const {userId} = req.params;
-		console.log(`this is the userId: ${userId}`);
 		if (!mongoose.Types.ObjectId.isValid(userId))
             return res.status(400).json({ success: false, message: "Invalid User ID format." });
 		const topMovies = await Rating.aggregate([
@@ -126,7 +123,6 @@ const Top3RatedMovies = async (req, res) => {
 				}
 			}
 		])
-		console.log(`this is the 3 movies: ${topMovies}`);
 		res.status(200).json({ success: true, data:topMovies, message: "top rated movies geted successfuly" });
 	} catch (error){
 		console.error(error.message);
