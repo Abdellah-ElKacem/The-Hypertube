@@ -16,7 +16,6 @@ backend/movies_downloads/
 backend/subtitles/
 backend/.env
 backend/client_secret_*.json
-backend/*.json
 
 # IDEs, Editors and OS files
 .DS_Store
