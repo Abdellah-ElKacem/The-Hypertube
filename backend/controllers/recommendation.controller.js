@@ -11,8 +11,11 @@ const getSimilar = async (req, res) => {
         const similar = await getSimilarMovies(id);
         res.status(200).json({ success: true, data: similar });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Something went wrong." });
+        const statusCode = error.status || 500;
+        res.status(statusCode).json({ 
+            success: false, 
+            message: `TMDb Error: ${error.message}` 
+        });
     }
 }
 
@@ -22,7 +25,11 @@ const getTopMoviesByGenre = async (req, res) => {
         const movies = await getTopByGenre(genre);
         res.status(200).json({ success: true, data: movies });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Something went wrong." });
+        const statusCode = error.status || 500;
+        res.status(statusCode).json({ 
+            success: false, 
+            message: `TMDb Error: ${error.message}` 
+        });
     }
 }
 
@@ -61,8 +68,11 @@ const topMoviesThisWeek = async (req, res) => {
         const movies = await getTopMoviesThisWeek();
         res.status(200).json({ success: true, data: movies });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Something went wrong." });
+       const statusCode = error.status || 500;
+        res.status(statusCode).json({ 
+            success: false, 
+            message: `TMDb Error: ${error.message}` 
+        });
     }
 }
 
@@ -74,8 +84,11 @@ const getlandingMovies = async (req, res) =>{
         }
         res.status(200).json({ success: true, data: movies });
     } catch (error){
-        console.log(error.message)
-        res.status(500).json({ success: false, message: "Something went wrong." });
+         const statusCode = error.status || 500;
+        res.status(statusCode).json({ 
+            success: false, 
+            message: `TMDb Error: ${error.message}` 
+        });
     }
 }
 
@@ -107,12 +120,14 @@ const moviesUserMayLike = async (req, res) =>{
         if (mostWatchedGenreResult && mostWatchedGenreResult.length > 0) {
             favoriteGenre = mostWatchedGenreResult[0]._id;
         }
-        console.log(`${favoriteGenre}`)
         const movies = await getTopByGenre(favoriteGenre, 10);
         res.status(200).json({ success: true, data: movies });
     } catch(error){
-        console.log(error.message)
-        res.status(500).json({ success: false, message: "Something went wrong." });
+        const statusCode = error.status || 500;
+        res.status(statusCode).json({ 
+            success: false, 
+            message: `TMDb Error: ${error.message}` 
+        });
     }
 }
 

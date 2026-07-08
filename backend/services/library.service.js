@@ -43,8 +43,9 @@ const getMovies = async (page, genre = null, year = null, rating = null, sort, o
 			totalMovies: totalMovies || 0
 		}
 	} catch (error) {
-		console.error(error);
-		throw new Error(`YTS API error: ${error.message}`)
+		const customError = new Error(error.response?.data?.status_message || error.message);
+        customError.status = error.response?.status || 500;
+        throw customError;
 	}
 }
 
@@ -127,7 +128,7 @@ const searchMoviesService = async (title, page) => {
                     source:    'yts'
                 }));
         } catch (err) {
-            console.log(`YTS fetch failed: ${err.message}`);
+            console.error(`YTS fetch failed during search: ${err.message}`);
         }
         const combined = [...tmdbMapped, ...ytsMapped];
         const seen = new Map();
@@ -150,7 +151,9 @@ const searchMoviesService = async (title, page) => {
             totalPages: Math.ceil(dedupedMovies.length / PAGE_SIZE) || 0
         };
     } catch (error) {
-        throw new Error(`Search error: ${error.message}`);
+        const customError = new Error(error.response?.data?.status_message || error.message);
+        customError.status = error.response?.status || 500;
+        throw customError;
     }
 }
 module.exports = { getMovies, searchMoviesService };

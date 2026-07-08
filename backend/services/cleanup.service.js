@@ -22,11 +22,11 @@ const cleanupUnwatchedMovies = async () => {
     const lastActivity = movie.lastWatchedAt || movie.updatedAt || movie.createdAt;
     if (now - new Date(lastActivity).getTime() < ONE_MONTH_MS) continue;
 
-    console.log(`🗑️ Removing unwatched download: ${movie.movieName} (last activity: ${lastActivity})`);
+    console.log(`Removing unwatched download: ${movie.movieName} (last activity: ${lastActivity})`);
     try {
       deleteDownloadFolder(movie.filePath);
     } catch (err) {
-      console.log(`⚠️ Failed to delete files for ${movie.movieName}:`, err.message);
+      console.log(`Failed to delete files for ${movie.movieName}:`, err.message);
     }
 
     movie.isDownloaded = false;

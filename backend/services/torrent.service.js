@@ -7,7 +7,6 @@ const YTS_BASE_API_URL = process.env.YTS_BASE_API_URL;
 
 const getTorrents = async (imdb_Id) => {
 	try {
-		console.log(`Fetching torrents for IMDb ID: ${imdb_Id}`);
 		const response = await axios.get(`${YTS_BASE_API_URL}movie_details.json?imdb_id=${imdb_Id}`);
 		const movieObj = response.data?.data?.movie;
 		if (movieObj && movieObj.torrents && movieObj.torrents.length > 0) {
@@ -23,7 +22,6 @@ const getTorrents = async (imdb_Id) => {
 				}))
 			};
 		}
-		console.log(`Movie not found on YTS, trying Archive.org...`);
 		const movieTitle = movieObj?.title || await getMovieTitleFallback(imdb_Id);
 		if (!movieTitle)
 			throw new Error(`No movie title found for IMDb ID ${imdb_Id}`);
@@ -57,10 +55,10 @@ const getFromArchive = async (movieTitle) => {
 
 	const docs = searchRes.data?.response?.docs || [];
 	const bestMatch = docs.find(doc => {
-        const hasTrailerSubject = Array.isArray(doc.subject)
-            ? doc.subject.some(s => typeof s === 'string' && s.toLowerCase().includes('trailer'))
-            : (typeof doc.subject === 'string' && doc.subject.toLowerCase().includes('trailer'));
-        const isTrailer = hasTrailerSubject || doc.title?.toLowerCase().includes('trailer');
+		const hasTrailerSubject = Array.isArray(doc.subject)
+			? doc.subject.some(s => typeof s === 'string' && s.toLowerCase().includes('trailer'))
+			: (typeof doc.subject === 'string' && doc.subject.toLowerCase().includes('trailer'));
+		const isTrailer = hasTrailerSubject || doc.title?.toLowerCase().includes('trailer');
 		const isFullLength = doc.item_size ? parseInt(doc.item_size) > 400000000 : false;
 		return !isTrailer && isFullLength;
 	});
@@ -92,12 +90,9 @@ const getFromArchive = async (movieTitle) => {
 
 const buildMagnetLink = async (imdbId) => {
 	try {
-		console.log(`Building magnet links for IMDb ID: ${imdbId}`);
 		const torrentsData = await getTorrents(imdbId);
-		console.log("this is the torrent => ", torrentsData.torrents)
 		if (!torrentsData || !torrentsData.torrents || torrentsData.torrents.length === 0)
 			return [];
-		console.log("deb1")
 		const trackers = [
 			'udp://zer0day.ch:1337/announce',
 			'udp://tracker.publictracker.xyz:6969/announce',
@@ -176,7 +171,6 @@ const buildMagnetLink = async (imdbId) => {
 			video_codec: torrent.video_codec,
 			magnetLink: `magnet:?xt=urn:btih:${torrent.hash}&dn=${title}${trackersString}`
 		}));
-		console.log(`Magnet links built for ${torrentsData.title}:`, magnetLinks);
 		return magnetLinks;
 	} catch (error) {
 		console.error(error.message);

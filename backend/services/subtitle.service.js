@@ -22,7 +22,6 @@ const loginToOpenSubtitles = async () => {
             }
         }
     );
-    console.log("access token =>", response.data.token)
     authToken = response.data.token;
 };
 
@@ -68,7 +67,6 @@ const getSubtitle = async (imdb_code, preferredLanguage) => {
                 return {};
             }
         }
-        console.log("Subtitles successfully fetched:", groupedByLanguage);
         return groupedByLanguage;
     } catch (error) {
         const errorDetails = error.response ? JSON.stringify(error.response.data) : error.message;

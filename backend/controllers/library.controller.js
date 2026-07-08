@@ -16,10 +16,10 @@ const getallmovies = async (req, res) => {
             totalpages: Math.ceil(result.totalMovies / 20)
         });
 	} catch (error) {
-		console.log(error.message)
-		res.status(503).json({ 
+		 const statusCode = error.status || 500;
+        res.status(statusCode).json({
             success: false, 
-            message: "Network busy, please refresh." 
+            message: `Movies API Error: ${error.message}` 
         });
 		// res.status(500).json({ success: false, message: "Something went wrong." });
 	}
@@ -37,7 +37,11 @@ const searchMovies = async (req, res) => {
             totalpages: Math.ceil(result.totalMovies / 20)
         });
 	}catch (error) {
-		res.status(500).json({ success: false, message: "Something went wrong." });
+		 const statusCode = error.status || 500;
+        res.status(statusCode).json({
+            success: false, 
+            message: `Movies API Error: ${error.message}` 
+        });
 	}
 }
 

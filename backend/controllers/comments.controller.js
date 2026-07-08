@@ -7,7 +7,7 @@ const addComment = async (req, res) => {
         const movieId = req.body.movieId;
         let  content = req.body.content;
         const userId = req.user.id;
-        const allowedCharactersRegex = /^[a-zA-Z0-9\s.,!?''"\-_+@]+$/;
+        const allowedCharactersRegex = /^[a-zA-Z0-9\s.,!?''"\-_@]+$/;
         const parentId = req.body.parentId || null;
         content = req.body.content?.trim().slice(0, 500);
         if (!allowedCharactersRegex.test(content)) {
@@ -37,8 +37,6 @@ const addComment = async (req, res) => {
         await comment.save();
         res.status(201).json({ success: true, message: "Comment added successfully.", data: comment });
     } catch (error) {
-        console.log(error.message);
-
         res.status(500).json({ success: false, message: "Something went wrong." });
     }
 }
@@ -56,7 +54,6 @@ const getMovieComments = async (req, res) => {
         const rootComments = [];
         Object.values(commentMap).forEach(comment => {
             if (comment.parentId) {
-                console.log(`  comments : ${comment} `);
                 if (commentMap[comment.parentId]) {
                     commentMap[comment.parentId].replies.push(comment);
                 }
@@ -74,7 +71,6 @@ const getMovieComments = async (req, res) => {
 const getSingelComment = async(req, res) => {
     try{
         const  commentId  = req.params.id;
-        console.log(commentId)
         const comment = await Comment.findById(commentId)
                 .populate('userId', 'firstName lastName avatar')
 
