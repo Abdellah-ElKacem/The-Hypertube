@@ -349,13 +349,21 @@ export default function MovieDetailPage({ params }: PageProps) {
                 } else {
                     setError("Movie not found.");
                 }
-            } catch (err: unknown) {
+            } catch (err) {
                 if (isCancelled) return;
-                console.error("Error fetching movie details:", err);
-                const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
+                const responseData =
+                    err &&
+                    typeof err === "object" &&
+                    "response" in err &&
+                    err.response &&
+                    typeof err.response === "object" &&
+                    "data" in err.response
+                        ? (err.response.data as { message?: string; error?: string })
+                        : undefined;
+
                 setError(
-                    axiosError?.response?.data?.message ||
-                        axiosError?.message ||
+                    responseData?.message ||
+                        responseData?.error ||
                         "Failed to load movie details.",
                 );
             } finally {

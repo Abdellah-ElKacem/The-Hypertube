@@ -15,7 +15,9 @@ export default function WatchlistPage() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [sortType, setSortType] = useState<"title" | "year" | "rating">("title");
+    const [sortType, setSortType] = useState<"title" | "year" | "rating">(
+        "title",
+    );
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
     const fetchWatchlist = async () => {
@@ -29,10 +31,26 @@ export default function WatchlistPage() {
             } else {
                 setError("Failed to fetch watchlist.");
             }
-        } catch (err: unknown) {
+        } catch (err) {
             console.error("Watchlist fetch error:", err);
-            const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
-            setError(axiosError?.response?.data?.message || axiosError?.message || "Failed to load watchlist.");
+            const responseData =
+                err &&
+                typeof err === "object" &&
+                "response" in err &&
+                err.response &&
+                typeof err.response === "object" &&
+                "data" in err.response
+                    ? (err.response.data as {
+                          message?: string;
+                          error?: string;
+                      })
+                    : undefined;
+
+            setError(
+                responseData?.message ||
+                    responseData?.error ||
+                    "Failed to load watchlist.",
+            );
         } finally {
             setIsLoading(false);
         }
@@ -49,13 +67,18 @@ export default function WatchlistPage() {
         }
     }, [user?._id, authLoading]);
 
-    const handleRemoveFromWishlist = async (e: React.MouseEvent, imdbCode: string) => {
+    const handleRemoveFromWishlist = async (
+        e: React.MouseEvent,
+        imdbCode: string,
+    ) => {
         e.preventDefault();
         e.stopPropagation();
         try {
             const res = await api.delete(`/movies/${imdbCode}/wishlist`);
             if (res.data?.success) {
-                setMovies(prev => prev.filter(m => m.imdb_code !== imdbCode));
+                setMovies((prev) =>
+                    prev.filter((m) => m.imdb_code !== imdbCode),
+                );
             }
         } catch (err) {
             console.error("Error removing from watchlist:", err);
@@ -66,7 +89,9 @@ export default function WatchlistPage() {
         if (!yearStr) return "N/A";
         if (!isNaN(Number(yearStr)) && yearStr.length === 4) return yearStr;
         const parsedDate = new Date(yearStr);
-        return isNaN(parsedDate.getTime()) ? yearStr : parsedDate.getFullYear().toString();
+        return isNaN(parsedDate.getTime())
+            ? yearStr
+            : parsedDate.getFullYear().toString();
     };
 
     // Sort movies
@@ -86,7 +111,9 @@ export default function WatchlistPage() {
         }
 
         if (typeof fieldA === "string" && typeof fieldB === "string") {
-            return sortOrder === "asc" ? fieldA.localeCompare(fieldB) : fieldB.localeCompare(fieldA);
+            return sortOrder === "asc"
+                ? fieldA.localeCompare(fieldB)
+                : fieldB.localeCompare(fieldA);
         }
         const numA = Number(fieldA);
         const numB = Number(fieldB);
@@ -102,7 +129,9 @@ export default function WatchlistPage() {
                 sortType={sortType}
                 sortOrder={sortOrder}
                 onSortTypeChange={setSortType}
-                onSortOrderToggle={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                onSortOrderToggle={() =>
+                    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+                }
             />
 
             {error && (

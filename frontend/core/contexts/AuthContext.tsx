@@ -47,9 +47,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             let res;
             try {
                 res = await api.get("/movies/history");
-            } catch (err: unknown) {
-                const axiosError = err as { response?: { status?: number } };
-                if (axiosError?.response?.status === 404) {
+            } catch (err) {
+                const isNotFoundError =
+                    err &&
+                    typeof err === "object" &&
+                    "response" in err &&
+                    err.response &&
+                    typeof err.response === "object" &&
+                    "status" in err.response &&
+                    err.response.status === 404;
+
+                if (isNotFoundError) {
                     res = await api.get("/movie/history");
                 } else {
                     throw err;
@@ -71,7 +79,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 setWatchedMovieIds(ids);
             }
         } catch (error) {
-            console.error("Failed to fetch watch history in AuthContext:", error);
+            const responseData =
+                error &&
+                typeof error === "object" &&
+                "response" in error &&
+                error.response &&
+                typeof error.response === "object" &&
+                "data" in error.response
+                    ? (error.response.data as { message?: string; error?: string })
+                    : undefined;
+            console.error(
+                "Failed to fetch watch history in AuthContext:",
+                responseData?.message || responseData?.error || error,
+            );
         }
     }, []);
 
@@ -80,7 +100,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             const profile = await getMe();
             setUser(profile);
         } catch (error) {
-            console.error("Failed to fetch user profile:", error);
+            const responseData =
+                error &&
+                typeof error === "object" &&
+                "response" in error &&
+                error.response &&
+                typeof error.response === "object" &&
+                "data" in error.response
+                    ? (error.response.data as { message?: string; error?: string })
+                    : undefined;
+            console.error(
+                "Failed to fetch user profile:",
+                responseData?.message || responseData?.error || error,
+            );
             setUser(null);
             clearTokens();
             const pathname =

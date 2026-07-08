@@ -55,10 +55,18 @@ export default function HistoryPage() {
             try {
                 // Try plural route first
                 res = await api.get("/movies/history");
-            } catch (err: unknown) {
+            } catch (err) {
                 // Fallback to singular route if plural returns 404
-                const axiosError = err as { response?: { status?: number } };
-                if (axiosError?.response?.status === 404) {
+                const isNotFoundError =
+                    err &&
+                    typeof err === "object" &&
+                    "response" in err &&
+                    err.response &&
+                    typeof err.response === "object" &&
+                    "status" in err.response &&
+                    err.response.status === 404;
+
+                if (isNotFoundError) {
                     res = await api.get("/movie/history");
                 } else {
                     throw err;
@@ -113,12 +121,21 @@ export default function HistoryPage() {
             } else {
                 setError("Failed to fetch watch history.");
             }
-        } catch (err: unknown) {
+        } catch (err) {
             console.error("Watch history fetch error:", err);
-            const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
+            const responseData =
+                err &&
+                typeof err === "object" &&
+                "response" in err &&
+                err.response &&
+                typeof err.response === "object" &&
+                "data" in err.response
+                    ? (err.response.data as { message?: string; error?: string })
+                    : undefined;
+
             setError(
-                axiosError?.response?.data?.message ||
-                    axiosError?.message ||
+                responseData?.message ||
+                    responseData?.error ||
                     "Failed to load watch history.",
             );
         } finally {
@@ -137,28 +154,6 @@ export default function HistoryPage() {
         }
     }, [user?._id, authLoading]);
 
-    // const handleClearHistory = async () => {
-    //     if (!confirm("Are you sure you want to clear your entire watch history?")) return;
-    //     setIsClearing(true);
-    //     try {
-    //         try {
-    //             await api.delete("/movies/history");
-    //         } catch (err: any) {
-    //             if (err?.response?.status === 404) {
-    //                 await api.delete("/movie/history");
-    //             } else {
-    //                 throw err;
-    //             }
-    //         }
-    //         setMovies([]);
-    //     } catch (err) {
-    //         console.error("Error clearing watch history:", err);
-    //         alert("Failed to clear watch history. Please try again.");
-    //     } finally {
-    //         setIsClearing(false);
-    //     }
-    // };
-
     const getPosterUrl = (poster: string) => {
         if (!poster) return "/no-poster.png";
         return poster.startsWith("http")
@@ -173,21 +168,7 @@ export default function HistoryPage() {
                     <h1 className="font-bold text-2xl md:text-3xl text-white w-full">
                         Watch History
                     </h1>
-                    {/* <div className="flex justify-center items-center bg-white/10 border border-[#F8E9A1]/20 px-3 py-1 rounded-[10px] text-xs text-[#F8E9A1] font-bold">
-                        {movies.length}
-                    </div> */}
                 </div>
-
-                {/* {movies.length > 0 && (
-                    <button
-                        onClick={handleClearHistory}
-                        disabled={isClearing}
-                        className="bg-white/5 border border-white/10 flex gap-2 items-center px-4 py-2 rounded-full hover:bg-[#EC4949]/20 hover:border-[#EC4949]/30 hover:text-[#EC4949] transition-all text-white text-xs md:text-sm cursor-pointer disabled:opacity-50"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                        <span>{isClearing ? "Clearing..." : "Clear History"}</span>
-                    </button>
-                )} */}
             </div>
 
             {error && (

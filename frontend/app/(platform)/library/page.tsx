@@ -158,11 +158,24 @@ function LibraryContent() {
                 } else {
                     setError("Failed to load movies from API.");
                 }
-            } catch (err: unknown) {
+            } catch (err) {
                 if (isCancelled) return;
                 console.error("API error fetching movies:", err);
-                const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
-                setError(axiosError?.response?.data?.message || axiosError?.message || "An error occurred while fetching movies.");
+                const responseData =
+                    err &&
+                    typeof err === "object" &&
+                    "response" in err &&
+                    err.response &&
+                    typeof err.response === "object" &&
+                    "data" in err.response
+                        ? (err.response.data as { message?: string; error?: string })
+                        : undefined;
+
+                setError(
+                    responseData?.message ||
+                        responseData?.error ||
+                        "An error occurred while fetching movies.",
+                );
             } finally {
                 if (!isCancelled) setIsLoading(false);
             }
