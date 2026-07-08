@@ -114,8 +114,11 @@ const getMovieById = async (req, res) => {
 		res.status(200).json({ success: true, data: movie, userRating });
 
 	} catch (error) {
-		console.error("Error in getMovieById:", error);
-		res.status(500).json({ success: false, message: "Something went wrong.", error: error.message });
+		 const statusCode = error.status || 404;
+        res.status(statusCode).json({
+            success: false, 
+            message: `${error.message}` 
+        });
 	}
 };
 
@@ -136,7 +139,11 @@ const getMovieTrailer = async (req, res) => {
 		}
 		res.status(200).json({ success: true, data: trailer })
 	} catch (error) {
-		res.status(500).json({ success: false, message: "Something went wrong." });
+		 const statusCode = error.status || 404;
+        res.status(statusCode).json({
+            success: false, 
+            message: `${error.message}` 
+        });
 	}
 }
 

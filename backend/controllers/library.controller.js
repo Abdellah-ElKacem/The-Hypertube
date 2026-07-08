@@ -16,7 +16,7 @@ const getallmovies = async (req, res) => {
             totalpages: Math.ceil(result.totalMovies / 20)
         });
 	} catch (error) {
-		 const statusCode = error.status || 500;
+		 const statusCode = error.status || 404;
         res.status(statusCode).json({
             success: false, 
             message: `Movies API Error: ${error.message}` 
@@ -37,7 +37,7 @@ const searchMovies = async (req, res) => {
             totalpages: Math.ceil(result.totalMovies / 20)
         });
 	}catch (error) {
-		 const statusCode = error.status || 500;
+		 const statusCode = error.status || 404;
         res.status(statusCode).json({
             success: false, 
             message: `Movies API Error: ${error.message}` 

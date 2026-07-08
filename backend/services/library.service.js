@@ -44,7 +44,7 @@ const getMovies = async (page, genre = null, year = null, rating = null, sort, o
 		}
 	} catch (error) {
 		const customError = new Error(error.response?.data?.status_message || error.message);
-        customError.status = error.response?.status || 500;
+        customError.status = error.response?.status || 404;
         throw customError;
 	}
 }
@@ -152,7 +152,7 @@ const searchMoviesService = async (title, page) => {
         };
     } catch (error) {
         const customError = new Error(error.response?.data?.status_message || error.message);
-        customError.status = error.response?.status || 500;
+        customError.status = error.response?.status || 404;
         throw customError;
     }
 }

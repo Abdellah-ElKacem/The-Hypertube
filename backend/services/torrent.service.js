@@ -22,70 +22,33 @@ const getTorrents = async (imdb_Id) => {
 				}))
 			};
 		}
-		const movieTitle = movieObj?.title || await getMovieTitleFallback(imdb_Id);
-		if (!movieTitle)
-			throw new Error(`No movie title found for IMDb ID ${imdb_Id}`);
-		return await getFromArchive(movieTitle);
+		if (!movieObj || !movieObj.torrents || !movieObj.torrents.length > 0) {
+			return await getFromOtherResurce(imdb_Id);
+		} else
+			return[];
 	} catch (error) {
 		throw new Error(`YTS API error: ${error.message}`);
 	}
 }
 
-const getMovieTitleFallback = async (imdb_Id) => {
-	const dbMovie = await Movie.findOne({ imdbId: imdb_Id });
-	if (dbMovie?.movieName) return dbMovie.movieName;
-	try {
-		const findResponse = await axios.get(
-			`${process.env.TMDB_BASE_URL}/find/${imdb_Id}?api_key=${process.env.TMDB_API_KEY}&external_source=imdb_id`
-		);
-		return findResponse.data?.movie_results?.[0]?.title || null;
-	} catch (e) {
-		return null;
-	}
-}
-
-// separate function for Archive.org
-const getFromArchive = async (movieTitle) => {
-	const searchRes = await axios.get(`https://archive.org/advancedsearch.php`, {
-		params: {
-			q: `title:("${movieTitle}") AND mediatype:(movies)`,
-			output: 'json'
+const getFromOtherResurce = async (imdb_Id) => {
+	const response = await axios.get(`https://movies-api.accel.li/api/v2/movie_details.json?imdb_id=${imdb_Id}`);
+		const movieObj = response.data?.data?.movie;
+		if (movieObj && movieObj.torrents && movieObj.torrents.length > 0) {
+			return {
+				title: movieObj.title_long || movieObj.title,
+				torrents: movieObj.torrents.map(torrent => ({
+					quality: torrent.quality,
+					size: torrent.size,
+					hash: torrent.hash,
+					seeds: torrent.seeds,
+					magType: torrent.type,
+					video_codec: torrent.video_codec
+				}))
+			};
 		}
-	});
-
-	const docs = searchRes.data?.response?.docs || [];
-	const bestMatch = docs.find(doc => {
-		const hasTrailerSubject = Array.isArray(doc.subject)
-			? doc.subject.some(s => typeof s === 'string' && s.toLowerCase().includes('trailer'))
-			: (typeof doc.subject === 'string' && doc.subject.toLowerCase().includes('trailer'));
-		const isTrailer = hasTrailerSubject || doc.title?.toLowerCase().includes('trailer');
-		const isFullLength = doc.item_size ? parseInt(doc.item_size) > 400000000 : false;
-		return !isTrailer && isFullLength;
-	});
-
-	if (!bestMatch) {
-		console.log(`No acceptable items found on Archive.org for: ${movieTitle}`);
-		return { title: movieTitle, torrents: [] };
-	}
-
-	const metadataRes = await axios.get(`https://archive.org/metadata/${bestMatch.identifier}`);
-	const files = metadataRes.data?.files || [];
-	const torrentFile = files.find(file => file.name.endsWith('.torrent'));
-
-	if (!torrentFile?.btih)
-		return { title: movieTitle, torrents: [] };
-
-	return {
-		title: movieTitle,
-		torrents: [{
-			quality: 'Archive-Source',
-			size: torrentFile.size,
-			hash: torrentFile.btih,
-			seeds: 0,
-			magType: torrentFile.format,
-			video_codec: null
-		}]
-	};
+		else
+			return[];
 }
 
 const buildMagnetLink = async (imdbId) => {
