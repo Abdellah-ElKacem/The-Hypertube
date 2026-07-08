@@ -69,7 +69,7 @@ const getSimilarMovies = async (imdbId, limit = 10) => {
 
     } catch (error) {
         const customError = new Error(error.response?.data?.status_message || error.message);
-        customError.status = error.response?.status || 500;
+        customError.status = error.response?.status || 404;
         throw customError;
     }
 };
@@ -123,7 +123,7 @@ const getTopByGenre = async (genre, limit = 10) => {
 
     } catch (error) {
         const customError = new Error(error.response?.data?.status_message || error.message);
-        customError.status = error.response?.status || 500;
+        customError.status = error.response?.status || 404;
         throw customError;
     }
 }
@@ -169,7 +169,7 @@ const getTopMoviesThisWeek = async () => {
         return detailedMovies.filter(movie => movie !== null);
     } catch (error) {
         const customError = new Error(error.response?.data?.status_message || error.message);
-        customError.status = error.response?.status || 500;
+        customError.status = error.response?.status || 404;
         throw customError;
     }
 }
@@ -226,7 +226,7 @@ const getLandingMoviesService = async () => {
 
     } catch (error) {
         const customError = new Error(error.response?.data?.status_message || error.message);
-        customError.status = error.response?.status || 500;
+        customError.status = error.response?.status || 404;
         throw customError;
     }
 }

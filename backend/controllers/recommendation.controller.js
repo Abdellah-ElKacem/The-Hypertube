@@ -11,7 +11,7 @@ const getSimilar = async (req, res) => {
         const similar = await getSimilarMovies(id);
         res.status(200).json({ success: true, data: similar });
     } catch (error) {
-        const statusCode = error.status || 500;
+        const statusCode = error.status || 404;
         res.status(statusCode).json({ 
             success: false, 
             message: `TMDb Error: ${error.message}` 
@@ -25,7 +25,7 @@ const getTopMoviesByGenre = async (req, res) => {
         const movies = await getTopByGenre(genre);
         res.status(200).json({ success: true, data: movies });
     } catch (error) {
-        const statusCode = error.status || 500;
+        const statusCode = error.status || 404;
         res.status(statusCode).json({ 
             success: false, 
             message: `TMDb Error: ${error.message}` 
@@ -68,7 +68,7 @@ const topMoviesThisWeek = async (req, res) => {
         const movies = await getTopMoviesThisWeek();
         res.status(200).json({ success: true, data: movies });
     } catch (error) {
-       const statusCode = error.status || 500;
+       const statusCode = error.status || 404;
         res.status(statusCode).json({ 
             success: false, 
             message: `TMDb Error: ${error.message}` 
@@ -84,7 +84,7 @@ const getlandingMovies = async (req, res) =>{
         }
         res.status(200).json({ success: true, data: movies });
     } catch (error){
-         const statusCode = error.status || 500;
+         const statusCode = error.status || 404;
         res.status(statusCode).json({ 
             success: false, 
             message: `TMDb Error: ${error.message}` 
@@ -123,7 +123,7 @@ const moviesUserMayLike = async (req, res) =>{
         const movies = await getTopByGenre(favoriteGenre, 10);
         res.status(200).json({ success: true, data: movies });
     } catch(error){
-        const statusCode = error.status || 500;
+        const statusCode = error.status || 404;
         res.status(statusCode).json({ 
             success: false, 
             message: `TMDb Error: ${error.message}` 
